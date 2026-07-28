@@ -1,0 +1,48 @@
+###Solution to Exercise 4 
+#vim process_chek.sh
+#cat process_chek.sh
+
+#!/bin/bash
+#
+#Check the processes ran by the login user
+#
+echo -e "\nwhich user is login"
+
+echo -e "\n the user is $USER"
+
+################Checking the running processes by the user###########
+#
+echo -e "the running processes are"
+ps -aux| head -n 1
+ps -aux| grep -i "$USER"| grep -v grep
+
+NUM_PROCESS=$(ps -aux| grep -i "$USER" | grep -v grep | wc -l)
+echo -e "\n number of processes running by "$USER" is  "$NUM_PROCESS" "
+
+
+#Sort the process by CPU or memory utilization
+#
+
+#
+echo -e "\n"$USER" uses the below CPU or memory for each listed process"
+echo -e "\nHow would you like to sort the processes?"
+echo "1) By CPU usage"
+echo "2) By Memory usage"
+read -p "Enter your choice (1 or 2): " CHOICE
+
+case "$CHOICE" in
+    1)
+        echo -e "\n$USER's processes sorted by CPU usage (highest first):\n"
+        ps -aux | head -n 1 | awk -F' ' '{print $3, $11}'
+        ps -aux | grep -i "$USER" | grep -v grep | awk -F' ' '{print $3, $11}' | sort -rn
+        ;;
+    2)
+        echo -e "\n$USER's processes sorted by Memory usage (highest first):\n"
+        ps -aux | head -n 1 | awk -F' ' '{print $4, $11}'
+        ps -aux | grep -i "$USER" | grep -v grep | awk -F' ' '{print $4, $11}' | sort -rn
+        ;;
+    *)
+        echo -e "\nInvalid choice. Please enter 1 or 2."
+        exit 1
+        ;;
+esac
