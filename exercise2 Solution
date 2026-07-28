@@ -1,0 +1,75 @@
+#!/bin/bash
+
+#
+#Installation of the latest version of java
+#
+echo "        Java Auto-Installer for Linux-Mint"
+echo -e "=================================================="
+echo "Script started at: $(date)"
+echo ""
+echo -e  "\nupdate the system to the latest packages version"
+sudo apt update -y
+
+#
+echo -e "\n the system is up to date"
+#install the latest java version
+#
+echo -e "\n Check the latest version of java available on the system"
+
+LATEST_VERSION=$(apt-cache search --names-only '^openjdk-[0-9]+-jdk$'|awk -F'[- ]' '{print $2}'| sort -n |tail -n -1)
+echo "DEBUG: LATEST_VERSION of java is [$LATEST_VERSION]"
+
+echo -e "first check if any version is installed"
+
+if [ -z "$LATEST_VERSION" ]; then
+    echo "Could not detect a versioned OpenJDK package. Falling back to default-jdk."
+    PACKAGE="default-jdk"
+else
+    PACKAGE="openjdk-${LATEST_VERSION}-jdk"
+    echo -e "\nthe latest available java version is: $PACKAGE"
+fi
+
+echo -e "\ninstall the latest version of java"
+
+sudo apt install -y "$PACKAGE"
+
+echo -e "\n verify installation"
+## Condition 1
+
+if ! command -v java &> /dev/null; then
+    # Check if java is installed
+
+    echo "ERROR: Java installation failed — java is not installed."
+    exit 1
+else
+
+    JAVA_VERSION=$(java -version 2>&1 | head -n 1)
+    echo "A version of java is installed $JAVA_VERSION"
+
+    ORIGINAL_VERSION=$(echo "$JAVA_VERSION" | grep -oP '"\K[0-9]+(\.[0-9]+)*')
+    RECENT_VERSION=$(echo "$ORIGINAL_VERSION" | cut -d'.' -f1)
+
+    if [ "$RECENT_VERSION" -eq 1 ]; then
+        RECENT_VERSION=$(echo "$ORIGINAL_VERSION" | cut -d'.' -f2)
+        echo " the version of java installed is 8 or below"
+    fi
+
+    # Condition 2
+
+    if [ "$RECENT_VERSION" -lt 11 ]; then
+
+        echo "Installed Java version ($RECENT_VERSION) is less than 11."
+        STATUS="FAILED (version below 11)"
+    # Condition 3
+
+    else
+        echo "Installed Java version $RECENT_VERSION  is higher than 11."
+        STATUS="SUCCESS"
+    fi
+fi
+echo -e " \nInstallation Summary"
+echo -e "==================================================${NC}"
+echo " Package installed : $PACKAGE"
+echo " Java version      : $RECENT_VERSION"
+echo " Status             : $STATUS"
+echo " Finished at        : $(date)"
