@@ -1,0 +1,20 @@
+touch process_check.sh
+vim process_check.sh
+#!/bin/bash
+#
+#Check the processes ran by the login user
+#
+echo -e "\nwhich user is login"
+
+echo -e "\n the user is $USER"
+
+################Checking the running processes by the user###########
+#
+echo -e "the running processes are"
+ps -aux| grep -i "$USER"| grep -v grep
+
+NUM_PROCESS=$(ps -aux| grep -i "$USER" | grep -v grep | wc -l)
+echo -e "\n number of processes running by "$USER" is  "$NUM_PROCESS" "
+
+chmod +x process_check.sh
+./process_check.sh
