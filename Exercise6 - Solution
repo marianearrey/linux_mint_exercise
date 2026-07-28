@@ -1,0 +1,41 @@
+Solution
+touch application.sh
+chmod u+x application.sh
+vim  application.sh
+#!/bin/bash
+#
+#Installation of NodeJS and NPM
+#
+echo -e "\n make sure the system is updated"
+sudo apt update -y
+echo -e "\n install curl and wget package"
+sudo apt install -y wget curl
+echo -e "\n packages successfully installed"
+
+echo -e "\nInstalling Node.js (LTS) and npm via NodeSource..."
+curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+sudo apt install -y nodejs
+
+echo -e "\nNode.js and npm installed. Versions:"
+node -v
+npm -v
+echo -e "\n Download the artifact from URL"
+sudo wget https://node-envvars-artifact.s3.eu-west-2.amazonaws.com/bootcamp-node-envvars-project-1.0.0.tgz
+echo -e "\n Download completed successfully"
+echo -e "\n untar and  unzip the compressed files"
+sudo tar xvfz bootcamp-node-envvars-project-1.0.0.tgz
+export APP_ENV=dev
+export DB_USER=myuser
+export DB_PWD=mysecret
+echo "APP_ENV=$APP_ENV"
+echo "DB_USER=$DB_USER"
+echo "DB_PWD=$DB_PWD"
+cd package
+echo -e "\n Run the application"
+npm install &&
+echo -e "\nStarting the application..."
+node server.js  > app.log 2>&1 &
+echo -e "Logs are being written to: $(pwd)/app.log"
+echo -e "\installation is successful"
+
+
