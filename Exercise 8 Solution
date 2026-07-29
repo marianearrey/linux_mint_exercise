@@ -1,0 +1,79 @@
+vim application.sh
+#!/bin/bash
+#
+# Prepare environment, install all tools, and run the Node.js application
+#
+
+set -e
+
+echo "Prepare environment, install all tools"
+sudo apt update -y
+
+echo "Install node, npm, curl, wget, net-tools"
+sudo apt install -y curl
+curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+sudo apt install -y nodejs net-tools wget
+
+echo -e "\nPackages installation completed"
+echo "################"
+echo ""
+
+# Read user input for log directory
+echo -n "Set log directory location for the application (absolute path): "
+read LOG_DIRECTORY
+
+if [ -d "$LOG_DIRECTORY" ]; then
+    echo "$LOG_DIRECTORY already exists"
+else
+    mkdir -p "$LOG_DIRECTORY"
+    echo "A new directory $LOG_DIRECTORY has been created"
+fi
+
+# Resolve to absolute path in case the user entered a relative one
+LOG_DIR=$(realpath "$LOG_DIRECTORY")
+echo "Resolved absolute path: $LOG_DIR"
+
+echo -e "\nDownloading the artifact..."
+wget https://node-envvars-artifact.s3.eu-west-2.amazonaws.com/bootcamp-node-envvars-project-1.0.0.tgz
+tar zxvf bootcamp-node-envvars-project-1.0.0.tgz
+
+# Display Node.js version
+node_version=$(node -v)
+echo "NodeJS version $node_version installed"
+
+# Display npm version
+npm_version=$(npm -v)
+echo "NPM version $npm_version installed"
+echo ""
+echo "################"
+echo ""
+
+export APP_ENV=dev
+export DB_PWD=mysecret
+export DB_USER=myuser
+export LOG_DIR="$LOG_DIR"
+
+cd package
+
+echo -e "\nInstalling dependencies..."
+npm install
+
+echo -e "\nStarting the application in the background..."
+node server.js > $LOG_DIR/app.log 2>&1 &&
+APP_PID=$!
+
+sleep 3
+
+if ! ps -p "$APP_PID" > /dev/null; then
+    echo -e "\nApplication did not start. Check  for details:"
+    cat $LOG_DIR/app.log
+    exit 1
+fi
+
+echo -e "\nApplication is running (PID: $APP_PID)."
+
+# Display that nodejs process is running
+ps aux | grep node | grep -v grep
+
+# Display that nodejs is running on port 3000
+netstat -ltnp | grep :3000
